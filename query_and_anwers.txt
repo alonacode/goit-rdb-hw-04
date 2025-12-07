@@ -1,0 +1,206 @@
+CREATE TABLE authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE genres (
+    genre_id INT AUTO_INCREMENT PRIMARY KEY,
+    genre_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    publication_year YEAR,
+    author_id INT NOT NULL,
+    genre_id INT NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES authors(author_id),
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id)
+);
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE borrowed_books (
+    borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT NOT NULL,
+    user_id INT NOT NULL,
+    borrow_date DATE NOT NULL,
+    return_date DATE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
+# 2 
+
+INSERT INTO authors (author_name)
+VALUES 
+    ('J. K. Rowling'),
+    ('George Orwell');
+
+INSERT INTO genres (genre_name)
+VALUES
+    ('Fantasy'),
+    ('Dystopian');
+
+
+INSERT INTO books (title, publication_year, author_id, genre_id)
+VALUES
+    ('Harry Potter and the Philosopher''s Stone', 1997, 1, 1),
+    ('1984', 1949, 2, 2);
+
+INSERT INTO users (username, email)
+VALUES
+    ('alice', 'alice@example.com'),
+    ('bob', 'bob@example.com');
+
+INSERT INTO borrowed_books (book_id, user_id, borrow_date, return_date)
+VALUES
+    (1, 1, '2025-01-10', NULL), 
+    (2, 2, '2025-01-08', '2025-01-15');
+
+
+select * from borrowed_books;
+select * from books;
+select * from users;
+select * from authors;
+select * from genres;
+
+
+#Task 3
+
+
+SELECT * FROM order_details od 
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id  = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id  = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+
+
+#Task 4.1
+SELECT count(*) FROM order_details od 
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id  = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id  = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id;
+
+Task 4.2
+SELECT count(*) FROM order_details od 
+LEFT JOIN orders o ON od.order_id = o.id
+LEFT JOIN products p ON od.product_id  = p.id
+RIGHT JOIN customers c ON o.customer_id = c.id
+RIGHT JOIN employees e ON o.employee_id  = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id; #518
+
+
+Під час виконання завдання я змінила декілька операторів JOIN у запиті до таблиць бази даних. Початковий запит використовував лише INNER JOIN, і результат містив 518 рядків. Це повністю відповідало кількості рядків у таблиці order_details, яка є базовою таблицею для з’єднання.
+
+Далі я змінила деякі INNER JOIN на LEFT JOIN та RIGHT JOIN. Незважаючи на це, результат знову показав 518 рядків. Це сталося тому, що в наявних даних усі зовнішні ключі коректні та кожен рядок у order_details має відповідні записи у пов’язаних таблицях (orders, products, customers, suppliers, categories тощо).
+
+LEFT JOIN не відкидає рядки з лівої таблиці, а RIGHT JOIN – з правої. Але оскільки всі дані узгоджені (немає «висячих» записів і немає зовнішніх ключів, які не мають відповідної пари), такі JOIN-и не збільшують і не зменшують кількість рядків. Вони просто додають NULL-значення для тих випадків, де відповідних рядків могло б не бути. У цій базі таких ситуацій не виникає.
+
+Таким чином, кількість рядків не змінилася після заміни INNER на LEFT/RIGHT JOIN через те, що всі таблиці ідеально пов'язані між собою і кожен запис має відповідність у зв’язаних таблицях. Якби в базі існували записи без відповідних зовнішніх ключів, LEFT JOIN збільшив би кількість рядків, а INNER JOIN – зменшив би. У нашому випадку цього не відбулося, тому результат залишився незмінним (518 рядків).
+
+
+#Task 4.3
+SELECT * FROM order_details od 
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id  = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id  = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+WHERE e.employee_id > 3
+  AND e.employee_id <= 10;
+
+#Task 4.4
+
+SELECT 
+    ca.name,
+    COUNT(*) AS rows_in_group,
+    AVG(od.quantity) AS avg_quantity
+FROM order_details od
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+WHERE e.employee_id > 3
+  AND e.employee_id <= 10
+GROUP BY ca.name;
+
+# Task 4.5
+
+SELECT 
+    ca.name,
+    COUNT(*) AS rows_in_group,
+    AVG(od.quantity) AS avg_quantity
+FROM order_details od
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+WHERE e.employee_id > 3 
+  AND e.employee_id <= 10
+GROUP BY ca.name
+HAVING avg_quantity  > 21;
+
+# Task 4.6
+
+SELECT 
+    ca.name,
+    COUNT(*) AS rows_in_group,
+    AVG(od.quantity) AS avg_quantity
+FROM order_details od
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+WHERE e.employee_id > 3 
+  AND e.employee_id <= 10
+GROUP BY ca.name
+HAVING avg_quantity > 21
+ORDER BY rows_in_group DESC;
+
+# Task 4.7
+SELECT 
+    ca.name,
+    COUNT(*) AS rows_in_group,
+    AVG(od.quantity) AS avg_quantity
+FROM order_details od
+INNER JOIN orders o ON od.order_id = o.id
+INNER JOIN products p ON od.product_id = p.id
+INNER JOIN customers c ON o.customer_id = c.id
+INNER JOIN employees e ON o.employee_id = e.employee_id
+INNER JOIN shippers s ON o.shipper_id = s.id
+INNER JOIN suppliers sp ON p.supplier_id = sp.id
+INNER JOIN categories ca ON p.category_id = ca.id
+WHERE e.employee_id > 3 
+  AND e.employee_id <= 10
+GROUP BY ca.name
+HAVING avg_quantity > 21
+ORDER BY rows_in_group DESC
+LIMIT 1, 4;
+
